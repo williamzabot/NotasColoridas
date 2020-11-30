@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main_graph"
+    app:startDestination="@id/noteslistFragment">
+
+    <fragment
+        android:id="@+id/noteFragment"
+        android:name="com.williamzabot.notascoloridas.ui.note.NoteFragment"
+        android:label="Adicionar nota"
+        tools:layout="@layout/fragment_note">
+
+        <argument
+            android:name="note"
+            android:defaultValue="@null"
+            app:argType="com.williamzabot.notascoloridas.data.db.entity.Note"
+            app:nullable="true" />
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/noteslistFragment"
+        android:name="com.williamzabot.notascoloridas.ui.noteslist.NotesListFragment"
+        android:label="Notas Coloridas"
+        tools:layout="@layout/fragment_notes_list">
+        <action
+            android:id="@+id/action_notelist_to_noteadd"
+            app:destination="@id/noteFragment" />
+    </fragment>
+
+</navigation>

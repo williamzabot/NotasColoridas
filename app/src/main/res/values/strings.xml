@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">Notas Coloridas</string>
+    <string name="description">Descrição</string>
+    <string name="title">Título</string>
+    <string name="add_note">Insere nota</string>
+    <string name="save_note">Salvar Nota</string>
+    <string name="empty_fields">Necessário preencher todos os campos</string>
+    <string name="note_updated">Nota atualizada com sucesso</string>
+    <string name="note_added">Nota adicionada com sucesso</string>
+    <string name="error_add">Erro ao adicionar nota</string>
+    <string name="error_update">Erro ao atualizar nota</string>
+    <string name="note_deleted">Nota deletada com sucesso</string>
+    <string name="error_delete">Erro ao deletar nota</string>
+    <string name="edit_note">Editar nota</string>
+    <string name="linear">Linear</string>
+    <string name="staggered">Staggered</string>
+    <string name="note_title">título da nota</string>
+    <string name="note_description">descrição da nota</string>
+    <string name="estrela_para_favoritar_ou_desfavoritar_nota">estrela para favoritar ou desfavoritar nota</string>
+    <string name="color_change">botão de escolha de cor da nota</string>
+
+</resources>
