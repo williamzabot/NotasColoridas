@@ -7,10 +7,10 @@ import androidx.room.RoomDatabase
 import com.williamzabot.notascoloridas.data.db.dao.NoteDAO
 import com.williamzabot.notascoloridas.data.db.entity.Note
 
-@Database(entities = [Note::class], version = 1)
+@Database(entities = [Note::class], version = 2)
 abstract class AppDatabase : RoomDatabase() {
 
-    abstract val noteDAO : NoteDAO
+    abstract val noteDAO: NoteDAO
 
     companion object {
         @Volatile
@@ -24,7 +24,9 @@ abstract class AppDatabase : RoomDatabase() {
                         context,
                         AppDatabase::class.java,
                         "app_database"
-                    ).build()
+                    )
+                        .fallbackToDestructiveMigration()
+                        .build()
                 }
 
                 return instance

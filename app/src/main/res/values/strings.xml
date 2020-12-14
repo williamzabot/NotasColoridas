@@ -16,7 +16,6 @@
     <string name="staggered">Staggered</string>
     <string name="note_title">título da nota</string>
     <string name="note_description">descrição da nota</string>
-    <string name="estrela_para_favoritar_ou_desfavoritar_nota">estrela para favoritar ou desfavoritar nota</string>
     <string name="color_change">botão de escolha de cor da nota</string>
 
 </resources>

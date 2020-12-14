@@ -22,15 +22,15 @@ class NoteViewModel(private val noteRepository: NoteRepository) : ViewModel() {
     fun addOrUpdateNote(
         title: String,
         description: String,
-        favorite: Boolean,
         color: String,
-        id: Long = 0
+        id: Long = 0,
+        date : String?
     ) =
         viewModelScope.launch {
             if (id > 0) {
-                updateNote(id, title, description, favorite, color)
+                updateNote(id, title, description, color, date)
             } else {
-                insertNote(title, description, favorite, color)
+               insertNote(title, description, color, date)
             }
         }
 
@@ -38,11 +38,11 @@ class NoteViewModel(private val noteRepository: NoteRepository) : ViewModel() {
         id: Long,
         title: String,
         description: String,
-        favorite: Boolean,
-        color: String
+        color: String,
+        date: String?
     ) = viewModelScope.launch {
         try {
-            noteRepository.updateNote(id, title, description, favorite, color)
+            noteRepository.updateNote(id, title, description, color, date)
             _noteEvent.value = NoteState.Updated
             _messageEventData.value = R.string.note_updated
         } catch (ex: Exception) {
@@ -54,11 +54,11 @@ class NoteViewModel(private val noteRepository: NoteRepository) : ViewModel() {
     private fun insertNote(
         title: String,
         description: String,
-        favorite: Boolean,
-        color: String
+        color: String,
+        date: String?
     ) = viewModelScope.launch {
         try {
-            val id = noteRepository.insertNote(title, description, favorite, color)
+            val id = noteRepository.insertNote(title, description, color, date)
             if (id > 0) {
                 _noteEvent.value = NoteState.Inserted
                 _messageEventData.value = R.string.note_added

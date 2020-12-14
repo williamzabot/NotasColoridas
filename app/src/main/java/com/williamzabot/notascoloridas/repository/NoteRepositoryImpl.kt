@@ -8,14 +8,14 @@ class NoteRepositoryImpl(private val noteDAO: NoteDAO) : NoteRepository {
     override suspend fun insertNote(
         title: String,
         description: String,
-        favorite: Boolean,
-        color: String
+        color: String,
+        date: String?
     ): Long = noteDAO.insert(
         Note(
             title = title,
             description = description,
-            favorite = favorite,
-            color = color
+            color = color,
+            date = date
         )
     )
 
@@ -23,9 +23,9 @@ class NoteRepositoryImpl(private val noteDAO: NoteDAO) : NoteRepository {
         id: Long,
         title: String,
         description: String,
-        favorite: Boolean,
-        color: String
-    ) = noteDAO.update(Note(id, title, description, favorite, color))
+        color: String,
+        date: String?
+    ) = noteDAO.update(Note(id, title, description, color, date))
 
     override suspend fun deleteNote(id: Long) = noteDAO.delete(id)
 

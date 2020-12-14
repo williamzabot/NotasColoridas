@@ -4,11 +4,11 @@ import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import androidx.recyclerview.widget.RecyclerView
 import com.williamzabot.notascoloridas.R
 import com.williamzabot.notascoloridas.extensions.transformDrawable
 import com.williamzabot.notascoloridas.ui.colors.model.Color
-import kotlinx.android.synthetic.main.item_color.view.*
 
 class ColorsAdapter(
     private val colors: List<Color>,
@@ -31,7 +31,7 @@ class ColorsAdapter(
 
 
     inner class ColorViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val colorButton = itemView.color_button
+        private val colorButton = itemView.findViewById<Button>(R.id.color_button)
 
         fun bind(color: Color) {
             colorButton.background = transformDrawable(context, color.drawableCircle)

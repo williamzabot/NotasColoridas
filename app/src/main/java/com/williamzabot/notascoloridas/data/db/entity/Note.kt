@@ -12,6 +12,6 @@ data class Note(
     val id: Long = 0,
     val title: String,
     var description: String,
-    var favorite: Boolean = false,
-    var color: String
+    var color: String,
+    val date: String?
 ) : Parcelable

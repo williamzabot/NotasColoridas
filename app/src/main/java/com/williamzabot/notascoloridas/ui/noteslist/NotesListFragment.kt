@@ -6,6 +6,7 @@ import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
+import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -21,21 +22,10 @@ import com.williamzabot.notascoloridas.R
 import com.williamzabot.notascoloridas.data.AppDatabase
 import com.williamzabot.notascoloridas.data.db.entity.Note
 import com.williamzabot.notascoloridas.extensions.navigateWithAnimations
-import com.williamzabot.notascoloridas.extensions.transformDrawable
 import com.williamzabot.notascoloridas.repository.NoteRepository
 import com.williamzabot.notascoloridas.repository.NoteRepositoryImpl
-import com.xwray.groupie.GroupAdapter
-import com.xwray.groupie.Section
-import com.xwray.groupie.kotlinandroidextensions.Item
-import com.xwray.groupie.kotlinandroidextensions.ViewHolder
-import kotlinx.android.synthetic.main.fragment_notes_list.*
-import kotlinx.android.synthetic.main.item_header.view.*
-import kotlinx.android.synthetic.main.item_note.view.*
 
-const val FAKE_ID_FAVORITES: Long = 5000
-const val FAKE_ID_NOT_FAVORITES: Long = 3000
-const val FAVORITES = "Favoritos"
-const val NOT_FAVORITES = "Não Favoritos"
+
 const val PREFERENCES = "preferences"
 const val KEY_SHARED = "key"
 const val FIRST_LOGIN = "first login"
@@ -44,10 +34,15 @@ const val PREF_STAGGERED = "preference staggered"
 
 class NotesListFragment : Fragment(R.layout.fragment_notes_list) {
 
-    private var completeList = arrayListOf<NoteItem>()
-    private var groupAdapter = GroupAdapter<ViewHolder>()
     private lateinit var btLinear: MenuItem
     private lateinit var btStaggered: MenuItem
+    private lateinit var recyclerNotes: RecyclerView
+    private lateinit var txtAddNote: TextView
+    private val notesAdapter by lazy {
+        NoteAdapter { currentNote ->
+            sendNoteToEdit(currentNote)
+        }
+    }
 
     private val viewModel: NotesListViewModel by viewModels {
         object : ViewModelProvider.Factory {
@@ -68,6 +63,8 @@ class NotesListFragment : Fragment(R.layout.fragment_notes_list) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        recyclerNotes = view.findViewById(R.id.recyclerview_noteslist)
+        txtAddNote = view.findViewById(R.id.txt_add_note)
         observeEvents()
         setListeners()
     }
@@ -79,22 +76,13 @@ class NotesListFragment : Fragment(R.layout.fragment_notes_list) {
 
     private fun observeEvents() {
         viewModel.notesList.observe(viewLifecycleOwner) { notes ->
-            groupAdapter.clear()
-            completeList.clear()
 
-            val favoritesSection = createSection(FAKE_ID_FAVORITES, FAVORITES)
-            populateSection(FAKE_ID_FAVORITES, notes, favoritesSection)
-            groupAdapter.add(favoritesSection)
-
-            val notFavoritesSection = createSection(FAKE_ID_NOT_FAVORITES, NOT_FAVORITES)
-            populateSection(FAKE_ID_NOT_FAVORITES, notes, notFavoritesSection)
-            groupAdapter.add(notFavoritesSection)
-
-            recyclerview_noteslist.apply {
+            recyclerNotes.apply {
                 layoutManager = getLayout()
-                adapter = groupAdapter
+                adapter = notesAdapter
+                itemTouchHelper().attachToRecyclerView(this)
             }
-            itemTouchHelper().attachToRecyclerView(recyclerview_noteslist)
+            notesAdapter.notes = notes
         }
     }
 
@@ -105,33 +93,6 @@ class NotesListFragment : Fragment(R.layout.fragment_notes_list) {
             StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
         } else {
             LinearLayoutManager(requireContext())
-        }
-    }
-
-    private fun populateSection(
-        fakeId: Long,
-        notes: List<Note>,
-        section: Section
-    ) {
-        for (note in notes) {
-            val condition = createConditionToPopulateList(fakeId, note)
-            if (condition) {
-                val noteItem = NoteItem(note, object : OnNoteClickListener {
-                    override fun onItemClick() {
-                        sendNoteToEdit(note)
-                    }
-
-                    override fun onFavoriteClick() {
-                        if (note.favorite) {
-                            updateNote(note, false)
-                        } else {
-                            updateNote(note, true)
-                        }
-                    }
-                })
-                completeList.add(noteItem)
-                section.add(noteItem)
-            }
         }
     }
 
@@ -170,22 +131,6 @@ class NotesListFragment : Fragment(R.layout.fragment_notes_list) {
         return super.onOptionsItemSelected(item)
     }
 
-    private fun updateNote(note: Note, favorite: Boolean) {
-        viewModel.updateNote(note, favorite).invokeOnCompletion {
-            viewModel.getNotes()
-        }
-    }
-
-    private fun createConditionToPopulateList(
-        fakeId: Long,
-        note: Note
-    ): Boolean {
-        return if (fakeId == FAKE_ID_FAVORITES) {
-            note.favorite
-        } else {
-            !note.favorite
-        }
-    }
 
     private fun sendNoteToEdit(note: Note) {
         val directions = NotesListFragmentDirections.actionNotelistToNoteadd(note)
@@ -211,20 +156,14 @@ class NotesListFragment : Fragment(R.layout.fragment_notes_list) {
             }
 
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                actionSwipeNote(viewHolder)
+                // actionSwipeNote(viewHolder)
             }
         })
     }
 
-    private fun actionSwipeNote(viewHolder: RecyclerView.ViewHolder) {
-        val itemNote = completeList[viewHolder.adapterPosition]
-        val id = itemNote.currentNote.id
-        if (id != FAKE_ID_NOT_FAVORITES && id != FAKE_ID_FAVORITES && id > 0) {
-            deleteNote(id)
-        } else {
-            groupAdapter.notifyDataSetChanged()
-        }
-    }
+    /* private fun actionSwipeNote(viewHolder: RecyclerView.ViewHolder) {
+         deleteNote(id)
+     }*/
 
     private fun deleteNote(id: Long) {
         viewModel.deleteNote(id).invokeOnCompletion {
@@ -243,79 +182,9 @@ class NotesListFragment : Fragment(R.layout.fragment_notes_list) {
             Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
         }
 
-    private fun setListeners() =
-        txt_add_note.setOnClickListener {
+    private fun setListeners() {
+        txtAddNote.setOnClickListener {
             findNavController().navigateWithAnimations(R.id.action_notelist_to_noteadd)
         }
-
-    private fun createSection(fakeId: Long, title: String): Section {
-        val section = Section()
-        val headerItem = HeaderItem(title)
-        section.setHeader(headerItem)
-        val noteItem = NoteItem(Note(fakeId, title, "", false, ""))
-        completeList.add(noteItem)
-        return section
-    }
-
-    class NoteItem() : Item() {
-
-        lateinit var currentNote: Note
-        private lateinit var onNoteClickListener: OnNoteClickListener
-
-        constructor(pNote: Note, pOnNoteClickListener: OnNoteClickListener) : this() {
-            this.currentNote = pNote
-            this.onNoteClickListener = pOnNoteClickListener
-        }
-
-        constructor(pNote: Note) : this() {
-            this.currentNote = pNote
-        }
-
-        override fun bind(viewHolder: ViewHolder, position: Int) {
-            viewHolder.itemView.apply {
-                item_note_title.text = currentNote.title
-                item_note_description.text = currentNote.description
-                cardview_note.background = transformDrawable(context, currentNote.color)
-                setOnClickListener {
-                    onNoteClickListener.onItemClick()
-                }
-                configStar()
-            }
-        }
-
-        private fun View.configStar() {
-            favorite_star.apply {
-                setOnClickListener {
-                    onNoteClickListener.onFavoriteClick()
-                }
-                if (currentNote.favorite) {
-                    setBackgroundResource(R.drawable.yellowstar)
-                } else {
-                    setBackgroundResource(R.drawable.blackstar)
-                }
-            }
-        }
-
-        override fun getLayout() = R.layout.item_note
-    }
-
-    class HeaderItem() : Item() {
-
-        private var title: String = ""
-
-        constructor(pTitle: String) : this() {
-            this.title = pTitle
-        }
-
-        override fun bind(viewHolder: ViewHolder, position: Int) {
-            viewHolder.itemView.header_title.text = title
-        }
-
-        override fun getLayout() = R.layout.item_header
-    }
-
-    interface OnNoteClickListener {
-        fun onItemClick()
-        fun onFavoriteClick()
     }
 }

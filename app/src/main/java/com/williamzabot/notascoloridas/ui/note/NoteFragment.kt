@@ -5,8 +5,11 @@ import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
+import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModel
@@ -14,6 +17,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.observe
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import androidx.recyclerview.widget.RecyclerView
 import com.williamzabot.notascoloridas.R
 import com.williamzabot.notascoloridas.data.AppDatabase
 import com.williamzabot.notascoloridas.extensions.hideKeyboard
@@ -22,10 +26,14 @@ import com.williamzabot.notascoloridas.repository.NoteRepository
 import com.williamzabot.notascoloridas.repository.NoteRepositoryImpl
 import com.williamzabot.notascoloridas.ui.colors.*
 import com.williamzabot.notascoloridas.ui.colors.model.Color
-import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.fragment_note.*
 
 class NoteFragment : Fragment(R.layout.fragment_note) {
+
+    private lateinit var mAppToolbar: Toolbar
+    private lateinit var edtNoteTitle: EditText
+    private lateinit var edtNoteDescription: EditText
+    private lateinit var constraintNotes: ConstraintLayout
+    private lateinit var recyclerColors: RecyclerView
 
     private val viewModel: NoteViewModel by viewModels {
         object : ViewModelProvider.Factory {
@@ -51,11 +59,17 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        mAppToolbar = requireActivity().findViewById(R.id.app_toolbar)
+        edtNoteTitle = view.findViewById(R.id.formulary_note_title)
+        edtNoteDescription = view.findViewById(R.id.formulary_note_description)
+        constraintNotes = view.findViewById(R.id.constraint_notes_formulary)
+        recyclerColors = view.findViewById(R.id.recyclerview_colors)
+
         args.note?.let { note ->
-            requireActivity().app_toolbar.title = getString(R.string.edit_note)
-            formulary_note_title.setText(note.title)
-            formulary_note_description.setText(note.description)
-            constraint_notes_formulary.background = transformDrawable(requireContext(), note.color)
+            mAppToolbar.title = getString(R.string.edit_note)
+            edtNoteTitle.setText(note.title)
+            edtNoteDescription.setText(note.description)
+            constraintNotes.background = transformDrawable(requireContext(), note.color)
             currentColor = note.color
         }
         observeEvents()
@@ -74,15 +88,15 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
     }
 
     private fun saveNote() {
-        val title = formulary_note_title.text.toString()
-        val description = formulary_note_description.text.toString()
+        val title = edtNoteTitle.text.toString()
+        val description = edtNoteDescription.text.toString()
         if (title.isNotEmpty() && description.isNotEmpty()) {
             viewModel.addOrUpdateNote(
                 title,
                 description,
-                args.note?.favorite ?: false,
                 currentColor,
-                args.note?.id ?: 0
+                args.note?.id ?: 0,
+                null
             )
         } else {
             Toast.makeText(
@@ -115,18 +129,18 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
 
 
     private fun clearFields() {
-        formulary_note_title.text?.clear()
-        formulary_note_description.text?.clear()
+        edtNoteTitle.text?.clear()
+        edtNoteDescription.text?.clear()
     }
 
     private fun configureColorAdapter() {
         addColors()
         val colorsAdapter = ColorsAdapter(colors) { color ->
-            constraint_notes_formulary.background =
+            constraintNotes.background =
                 transformDrawable(requireContext(), color.drawableBackground)
             currentColor = color.drawableBackground
         }
-        recyclerview_colors.adapter = colorsAdapter
+        recyclerColors.adapter = colorsAdapter
     }
 
     private fun addColors() {

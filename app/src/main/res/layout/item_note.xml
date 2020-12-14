@@ -15,13 +15,14 @@
             android:id="@+id/item_note_title"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:maxLines="2"
-            android:textSize="24sp"
+            android:layout_marginEnd="10dp"
             android:contentDescription="@string/note_title"
+            android:maxLines="2"
             android:textColor="@android:color/background_dark"
+            android:textSize="24sp"
             android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@id/icon_clock"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/favorite_star"
             app:layout_constraintTop_toTopOf="parent"
             tools:text="Título" />
 
@@ -30,24 +31,26 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
+            android:layout_marginEnd="10dp"
             android:contentDescription="@string/note_description"
             android:maxLines="4"
-            android:textSize="18sp"
             android:textColor="@android:color/background_dark"
-            app:layout_constraintEnd_toEndOf="parent"
+            android:textSize="18sp"
+            app:layout_constraintEnd_toStartOf="@id/icon_clock"
             app:layout_constraintStart_toStartOf="@+id/item_note_title"
             app:layout_constraintTop_toBottomOf="@id/item_note_title"
             tools:text="Descrição" />
 
         <ImageView
-            android:id="@+id/favorite_star"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:contentDescription="@string/estrela_para_favoritar_ou_desfavoritar_nota"
-            app:layout_constraintBottom_toBottomOf="@id/item_note_title"
+            android:id="@+id/icon_clock"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:srcCompat="@drawable/blackstar"
-            />
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/ic_clock"
+            tools:visibility="visible" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

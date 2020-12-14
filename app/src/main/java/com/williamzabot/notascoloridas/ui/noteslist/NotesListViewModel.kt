@@ -1,6 +1,5 @@
 package com.williamzabot.notascoloridas.ui.noteslist
 
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -8,7 +7,6 @@ import androidx.lifecycle.viewModelScope
 import com.williamzabot.notascoloridas.R
 import com.williamzabot.notascoloridas.data.db.entity.Note
 import com.williamzabot.notascoloridas.repository.NoteRepository
-import com.williamzabot.notascoloridas.ui.note.ERROR
 import kotlinx.coroutines.launch
 
 class NotesListViewModel(
@@ -36,17 +34,4 @@ class NotesListViewModel(
             _messageEventData.postValue(R.string.error_delete)
         }
     }
-
-   fun updateNote(
-        note : Note,
-        favorite: Boolean
-    ) = viewModelScope.launch {
-        try {
-            noteRepository.updateNote(note.id, note.title, note.description, favorite, note.color)
-        } catch (ex: Exception) {
-            Log.e(ERROR, ex.toString())
-        }
-    }
-
-
 }
