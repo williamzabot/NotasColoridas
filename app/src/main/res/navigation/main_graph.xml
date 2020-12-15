@@ -11,10 +11,20 @@
         android:label="Adicionar nota"
         tools:layout="@layout/fragment_note">
 
+        <action
+            android:id="@+id/action_show_dialog_date"
+            app:destination="@id/dateDialogFragment" />
+
         <argument
             android:name="note"
             android:defaultValue="@null"
             app:argType="com.williamzabot.notascoloridas.data.db.entity.Note"
+            app:nullable="true" />
+
+        <argument
+            android:name="date"
+            android:defaultValue="@null"
+            app:argType="string"
             app:nullable="true" />
 
     </fragment>
@@ -29,4 +39,19 @@
             app:destination="@id/noteFragment" />
     </fragment>
 
+    <dialog
+        android:id="@+id/dateDialogFragment"
+        android:name="com.williamzabot.notascoloridas.ui.date.DateDialogFragment"
+        tools:layout="@layout/dialog_fragment_date">
+
+        <argument
+            android:name="note"
+            app:argType="com.williamzabot.notascoloridas.data.db.entity.Note"
+            app:nullable="false" />
+
+        <action
+            android:id="@+id/action_dialog_to_formulary"
+            app:destination="@id/noteFragment" />
+
+    </dialog>
 </navigation>

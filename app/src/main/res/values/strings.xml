@@ -17,5 +17,6 @@
     <string name="note_title">título da nota</string>
     <string name="note_description">descrição da nota</string>
     <string name="color_change">botão de escolha de cor da nota</string>
+    <string name="avise_me">Avise-me</string>
 
 </resources>

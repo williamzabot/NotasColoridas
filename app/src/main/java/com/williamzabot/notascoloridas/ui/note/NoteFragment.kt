@@ -5,6 +5,7 @@ import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
+import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -20,6 +21,7 @@ import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.RecyclerView
 import com.williamzabot.notascoloridas.R
 import com.williamzabot.notascoloridas.data.AppDatabase
+import com.williamzabot.notascoloridas.data.db.entity.Note
 import com.williamzabot.notascoloridas.extensions.hideKeyboard
 import com.williamzabot.notascoloridas.extensions.transformDrawable
 import com.williamzabot.notascoloridas.repository.NoteRepository
@@ -34,6 +36,7 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
     private lateinit var edtNoteDescription: EditText
     private lateinit var constraintNotes: ConstraintLayout
     private lateinit var recyclerColors: RecyclerView
+    private lateinit var buttonNotify : Button
 
     private val viewModel: NoteViewModel by viewModels {
         object : ViewModelProvider.Factory {
@@ -50,6 +53,7 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
     private var currentColor = COR_PADRAO
     private val colors = arrayListOf<Color>()
     private val args: NoteFragmentArgs by navArgs()
+    private lateinit var currentNote : Note
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,14 +63,12 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        mAppToolbar = requireActivity().findViewById(R.id.app_toolbar)
-        edtNoteTitle = view.findViewById(R.id.formulary_note_title)
-        edtNoteDescription = view.findViewById(R.id.formulary_note_description)
-        constraintNotes = view.findViewById(R.id.constraint_notes_formulary)
-        recyclerColors = view.findViewById(R.id.recyclerview_colors)
+        initView(view)
 
         args.note?.let { note ->
+            currentNote = note
             mAppToolbar.title = getString(R.string.edit_note)
+            buttonNotify.visibility = View.VISIBLE
             edtNoteTitle.setText(note.title)
             edtNoteDescription.setText(note.description)
             constraintNotes.background = transformDrawable(requireContext(), note.color)
@@ -74,6 +76,21 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
         }
         observeEvents()
         configureColorAdapter()
+
+        buttonNotify.setOnClickListener {
+            val direction = NoteFragmentDirections.actionShowDialogDate(currentNote)
+            findNavController().navigate(direction)
+        }
+
+    }
+
+    private fun initView(view: View) {
+        mAppToolbar = requireActivity().findViewById(R.id.app_toolbar)
+        edtNoteTitle = view.findViewById(R.id.formulary_note_title)
+        edtNoteDescription = view.findViewById(R.id.formulary_note_description)
+        constraintNotes = view.findViewById(R.id.constraint_notes_formulary)
+        recyclerColors = view.findViewById(R.id.recyclerview_colors)
+        buttonNotify = view.findViewById(R.id.button_notifications)
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) =

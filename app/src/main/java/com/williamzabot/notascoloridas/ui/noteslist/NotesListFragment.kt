@@ -156,14 +156,16 @@ class NotesListFragment : Fragment(R.layout.fragment_notes_list) {
             }
 
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                // actionSwipeNote(viewHolder)
+                actionSwipeNote(viewHolder)
             }
         })
     }
 
-    /* private fun actionSwipeNote(viewHolder: RecyclerView.ViewHolder) {
-         deleteNote(id)
-     }*/
+    private fun actionSwipeNote(viewHolder: RecyclerView.ViewHolder) {
+        val notes = viewModel.notesList.value
+        val note = notes!![viewHolder.adapterPosition]
+        deleteNote(note.id)
+    }
 
     private fun deleteNote(id: Long) {
         viewModel.deleteNote(id).invokeOnCompletion {
