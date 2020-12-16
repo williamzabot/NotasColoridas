@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -31,12 +32,11 @@ import com.williamzabot.notascoloridas.ui.colors.model.Color
 
 class NoteFragment : Fragment(R.layout.fragment_note) {
 
-    private lateinit var mAppToolbar: Toolbar
     private lateinit var edtNoteTitle: EditText
     private lateinit var edtNoteDescription: EditText
     private lateinit var constraintNotes: ConstraintLayout
     private lateinit var recyclerColors: RecyclerView
-    private lateinit var buttonNotify : Button
+    private lateinit var buttonNotify: Button
 
     private val viewModel: NoteViewModel by viewModels {
         object : ViewModelProvider.Factory {
@@ -53,7 +53,7 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
     private var currentColor = COR_PADRAO
     private val colors = arrayListOf<Color>()
     private val args: NoteFragmentArgs by navArgs()
-    private lateinit var currentNote : Note
+    private lateinit var currentNote: Note
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -67,7 +67,7 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
 
         args.note?.let { note ->
             currentNote = note
-            mAppToolbar.title = getString(R.string.edit_note)
+            (activity as AppCompatActivity).supportActionBar?.title = "Editar nota"
             buttonNotify.visibility = View.VISIBLE
             edtNoteTitle.setText(note.title)
             edtNoteDescription.setText(note.description)
@@ -85,7 +85,6 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
     }
 
     private fun initView(view: View) {
-        mAppToolbar = requireActivity().findViewById(R.id.app_toolbar)
         edtNoteTitle = view.findViewById(R.id.formulary_note_title)
         edtNoteDescription = view.findViewById(R.id.formulary_note_description)
         constraintNotes = view.findViewById(R.id.constraint_notes_formulary)

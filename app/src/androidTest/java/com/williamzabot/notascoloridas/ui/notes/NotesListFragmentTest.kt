@@ -52,7 +52,7 @@ class NotesListFragmentTest {
     fun test_components_isVisible() {
         onView(withId(R.id.constraint_fragment_noteslist)).check(matches(isDisplayed()))
         onView(withId(R.id.txt_add_note)).check(matches(isDisplayed()))
-        onView(withId(R.id.recyclerview_noteslist)).check(matches(isDisplayed()))
+        //onView(withId(R.id.recyclerview_noteslist)).check(matches(isDisplayed()))
     }
 
     @Test

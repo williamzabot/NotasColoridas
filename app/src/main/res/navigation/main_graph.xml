@@ -13,7 +13,10 @@
 
         <action
             android:id="@+id/action_show_dialog_date"
-            app:destination="@id/dateDialogFragment" />
+            app:destination="@id/dateDialogFragment"
+            app:popUpTo="@id/noteFragment"
+            app:popUpToInclusive="true"
+            />
 
         <argument
             android:name="note"
@@ -51,7 +54,8 @@
 
         <action
             android:id="@+id/action_dialog_to_formulary"
-            app:destination="@id/noteFragment" />
+            app:destination="@id/noteFragment"
+            />
 
     </dialog>
 </navigation>
