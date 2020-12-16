@@ -73,6 +73,7 @@ dependencies {
     //testar o navigation component
     androidTestImplementation "androidx.navigation:navigation-testing:$nav_version"
 
+    //testar os fragments
     debugImplementation "androidx.fragment:fragment-testing:1.2.5"
 
 
