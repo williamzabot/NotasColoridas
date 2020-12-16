@@ -152,9 +152,9 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
     private fun configureColorAdapter() {
         addColors()
         val colorsAdapter = ColorsAdapter(colors) { color ->
-            constraintNotes.background =
-                transformDrawable(requireContext(), color.drawableBackground)
+            constraintNotes.background = transformDrawable(requireContext(), color.drawableBackground)
             currentColor = color.drawableBackground
+            currentNote.color = currentColor
         }
         recyclerColors.adapter = colorsAdapter
     }
