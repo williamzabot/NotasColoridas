@@ -80,6 +80,15 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
             receivedDate = it
         }
 
+        args.note?.let { note ->
+            (activity as AppCompatActivity).supportActionBar?.title = getString(R.string.edit_note)
+            edtNoteTitle.setText(note.title)
+            edtNoteDescription.setText(note.description)
+            constraintNotes.background = transformDrawable(requireContext(), note.color)
+            currentColor = note.color
+            configureButtonNotify(note)
+        }
+
         args.title?.let {
             edtNoteTitle.setText(it)
         }
@@ -91,15 +100,6 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
         args.color?.let {
             currentColor = it
             constraintNotes.background = transformDrawable(requireContext(), it)
-        }
-
-        args.note?.let { note ->
-            (activity as AppCompatActivity).supportActionBar?.title = getString(R.string.edit_note)
-            edtNoteTitle.setText(note.title)
-            edtNoteDescription.setText(note.description)
-            constraintNotes.background = transformDrawable(requireContext(), note.color)
-            currentColor = note.color
-            configureButtonNotify(note)
         }
         observeEvents()
         configureColorAdapter()

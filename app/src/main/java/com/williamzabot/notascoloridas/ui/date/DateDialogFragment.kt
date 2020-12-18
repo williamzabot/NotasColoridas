@@ -80,6 +80,7 @@ class DateDialogFragment : DialogFragment() {
                 args.color
             )
         findNavController().navigate(direction)
+        Toast.makeText(context, "Ao salvar, a notificação será agendada", Toast.LENGTH_SHORT).show()
     }
 
 
