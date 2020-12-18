@@ -6,11 +6,13 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
 import com.williamzabot.notascoloridas.R
 import com.williamzabot.notascoloridas.data.db.entity.Note
-import com.williamzabot.notascoloridas.extensions.transformDrawable
+import com.williamzabot.notascoloridas.extensions.*
+import java.util.*
 
 class NoteAdapter(private val clickNote: (note: Note) -> Unit) :
     RecyclerView.Adapter<NoteAdapter.NoteViewHolder>() {
@@ -46,13 +48,37 @@ class NoteAdapter(private val clickNote: (note: Note) -> Unit) :
             itemTitle.text = note.title
             itemDescription.text = note.description
             itemCardView.background = transformDrawable(context, note.color)
-            if (note.date != null)
-                itemClock.visibility = View.VISIBLE
+            configureTime(note)
 
             itemView.setOnClickListener {
                 clickNote.invoke(note)
             }
+        }
 
+        private fun configureTime(
+            note: Note
+        ) {
+            val time = note.date
+            if (time != null) {
+                itemClock.visibility = View.VISIBLE
+                val calendar = Calendar.getInstance()
+                calendar.set(
+                    time.toYear(),
+                    time.toMonth(),
+                    time.toDay(),
+                    time.toHour(),
+                    time.toMinute(),
+                    0
+                )
+                val timeInMillis = calendar.timeInMillis
+                val currentTime = System.currentTimeMillis()
+                if (currentTime > timeInMillis) {
+                    note.date = null
+                    itemClock.visibility = View.INVISIBLE
+                }
+            } else {
+                itemClock.visibility = View.INVISIBLE
+            }
         }
 
     }

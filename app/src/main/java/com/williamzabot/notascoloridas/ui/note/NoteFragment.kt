@@ -9,10 +9,8 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.Toolbar
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -20,15 +18,20 @@ import androidx.lifecycle.observe
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.RecyclerView
+import androidx.work.WorkManager
 import com.williamzabot.notascoloridas.R
 import com.williamzabot.notascoloridas.data.AppDatabase
 import com.williamzabot.notascoloridas.data.db.entity.Note
-import com.williamzabot.notascoloridas.extensions.hideKeyboard
-import com.williamzabot.notascoloridas.extensions.transformDrawable
+import com.williamzabot.notascoloridas.extensions.*
 import com.williamzabot.notascoloridas.repository.NoteRepository
 import com.williamzabot.notascoloridas.repository.NoteRepositoryImpl
 import com.williamzabot.notascoloridas.ui.colors.*
 import com.williamzabot.notascoloridas.ui.colors.model.Color
+import java.util.*
+
+const val NOTIFICATION_ID = "appName_notification_id"
+const val NOTIFICATION_NAME = "appName"
+const val NOTIFICATION_CHANNEL = "appName_channel_01"
 
 class NoteFragment : Fragment(R.layout.fragment_note) {
 
@@ -50,10 +53,12 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
         }
     }
 
+    private var receivedDate: String? = null
     private var currentColor = COR_PADRAO
     private val colors = arrayListOf<Color>()
     private val args: NoteFragmentArgs by navArgs()
-    private lateinit var currentNote: Note
+    private lateinit var instanceWorkManager: WorkManager
+    private var notifyActivated = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -63,25 +68,62 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        instanceWorkManager = WorkManager.getInstance(requireContext())
         initView(view)
 
+        args.date?.let {
+            receivedDate = it
+        }
+
+        args.title?.let {
+            edtNoteTitle.setText(it)
+        }
+
+        args.description?.let {
+            edtNoteDescription.setText(it)
+        }
+
+        args.color?.let {
+            currentColor = it
+            constraintNotes.background = transformDrawable(requireContext(), it)
+        }
+
         args.note?.let { note ->
-            currentNote = note
             (activity as AppCompatActivity).supportActionBar?.title = "Editar nota"
-            buttonNotify.visibility = View.VISIBLE
             edtNoteTitle.setText(note.title)
             edtNoteDescription.setText(note.description)
             constraintNotes.background = transformDrawable(requireContext(), note.color)
             currentColor = note.color
+            configureButtonNotify(note)
         }
         observeEvents()
         configureColorAdapter()
 
         buttonNotify.setOnClickListener {
-            val direction = NoteFragmentDirections.actionShowDialogDate(currentNote)
-            findNavController().navigate(direction)
+            if (notifyActivated) {
+                //cancel notification
+            } else {
+                val direction = NoteFragmentDirections.actionShowDialogDate(
+                    args.note,
+                    edtNoteTitle.text.toString(),
+                    edtNoteDescription.text.toString(),
+                    currentColor
+                )
+                findNavController().navigate(direction)
+            }
         }
 
+    }
+
+    private fun configureButtonNotify(note: Note?) {
+        if (dateIsValid(note?.date)) {
+            notifyActivated = true
+            buttonNotify.text = "Cancelar"
+        } else {
+            note?.date = null
+            notifyActivated = false
+            buttonNotify.text = "Avise-me"
+        }
     }
 
     private fun initView(view: View) {
@@ -107,12 +149,15 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
         val title = edtNoteTitle.text.toString()
         val description = edtNoteDescription.text.toString()
         if (title.isNotEmpty() && description.isNotEmpty()) {
+            if (!dateIsValid(receivedDate)) {
+                receivedDate = null
+            }
             viewModel.addOrUpdateNote(
                 title,
                 description,
                 currentColor,
                 args.note?.id ?: 0,
-                null
+                receivedDate
             )
         } else {
             Toast.makeText(
@@ -122,6 +167,33 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
             ).show()
         }
     }
+
+    private fun dateIsValid(time: String?): Boolean {
+        return when (time) {
+            null -> false
+            else -> {
+                val calendar = Calendar.getInstance()
+                calendar.set(
+                    time.toYear(),
+                    time.toMonth(),
+                    time.toDay(),
+                    time.toHour(),
+                    time.toMinute(),
+                    0
+                )
+                System.currentTimeMillis() < calendar.timeInMillis
+            }
+        }
+    }
+
+
+    /*private fun scheduleNotification(delay: Long, data: Data) {
+        val notificationWork = OneTimeWorkRequest.Builder(NotifyWork::class.java)
+            .setInitialDelay(delay, TimeUnit.MILLISECONDS).setInputData(data).build()
+        instanceWorkManager.beginUniqueWork(NOTIFICATION_WORK,
+            ExistingWorkPolicy.REPLACE, notificationWork).enqueue()
+
+    }*/
 
     private fun observeEvents() {
         viewModel.noteEvent.observe(viewLifecycleOwner) { event ->
@@ -152,9 +224,10 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
     private fun configureColorAdapter() {
         addColors()
         val colorsAdapter = ColorsAdapter(colors) { color ->
-            constraintNotes.background = transformDrawable(requireContext(), color.drawableBackground)
+            constraintNotes.background =
+                transformDrawable(requireContext(), color.drawableBackground)
             currentColor = color.drawableBackground
-            currentNote.color = currentColor
+            args.note?.color = currentColor
         }
         recyclerColors.adapter = colorsAdapter
     }

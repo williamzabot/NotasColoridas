@@ -13,5 +13,5 @@ data class Note(
     val title: String,
     var description: String,
     var color: String,
-    val date: String?
+    var date: String?
 ) : Parcelable
