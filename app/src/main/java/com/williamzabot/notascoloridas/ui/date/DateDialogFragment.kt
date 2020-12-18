@@ -12,8 +12,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.williamzabot.notascoloridas.R
-import com.williamzabot.notascoloridas.data.db.entity.Note
-import com.williamzabot.notascoloridas.ui.note.NoteFragmentArgs
+import java.lang.System.currentTimeMillis
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -55,25 +54,32 @@ class DateDialogFragment : DialogFragment() {
                 timePicker.minute,
                 0
             )
-            val timeInMillis = calendar.timeInMillis
-            val currentTime = System.currentTimeMillis()
-            if (timeInMillis > currentTime) {
-                val formatter = SimpleDateFormat("dd/MM/yyyy HH:mm")
-                val time = formatter.format(calendar.time).replace(" ", "").replace("/", "")
-                    .replace(":", "")
-                val direction =
-                    DateDialogFragmentDirections.actionDialogToFormulary(
-                        args.note,
-                        time,
-                        args.title,
-                        args.description,
-                        args.color
-                    )
-                findNavController().navigate(direction)
+            if (calendar.timeInMillis > currentTimeMillis()) {
+                goToNotesFormulary(createTimeString(calendar))
             } else {
                 Toast.makeText(context, "Data inválida", Toast.LENGTH_LONG).show()
             }
         }
+    }
+
+    private fun createTimeString(
+        calendar: Calendar
+    ): String {
+        val formatter = SimpleDateFormat("dd/MM/yyyy HH:mm")
+        return formatter.format(calendar.time).replace(" ", "").replace("/", "")
+            .replace(":", "")
+    }
+
+    private fun goToNotesFormulary(time: String) {
+        val direction =
+            DateDialogFragmentDirections.actionDialogToFormulary(
+                args.note,
+                time,
+                args.title,
+                args.description,
+                args.color
+            )
+        findNavController().navigate(direction)
     }
 
 

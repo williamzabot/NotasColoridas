@@ -6,12 +6,12 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
-import android.widget.Toast
 import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
 import com.williamzabot.notascoloridas.R
 import com.williamzabot.notascoloridas.data.db.entity.Note
 import com.williamzabot.notascoloridas.extensions.*
+import java.lang.System.currentTimeMillis
 import java.util.*
 
 class NoteAdapter(private val clickNote: (note: Note) -> Unit) :
@@ -60,7 +60,7 @@ class NoteAdapter(private val clickNote: (note: Note) -> Unit) :
         ) {
             val time = note.date
             if (time != null) {
-                itemClock.visibility = View.VISIBLE
+                itemClock.visible()
                 val calendar = Calendar.getInstance()
                 calendar.set(
                     time.toYear(),
@@ -70,14 +70,12 @@ class NoteAdapter(private val clickNote: (note: Note) -> Unit) :
                     time.toMinute(),
                     0
                 )
-                val timeInMillis = calendar.timeInMillis
-                val currentTime = System.currentTimeMillis()
-                if (currentTime > timeInMillis) {
+                if (currentTimeMillis() > calendar.timeInMillis) {
                     note.date = null
-                    itemClock.visibility = View.INVISIBLE
+                    itemClock.invisible()
                 }
             } else {
-                itemClock.visibility = View.INVISIBLE
+                itemClock.invisible()
             }
         }
 

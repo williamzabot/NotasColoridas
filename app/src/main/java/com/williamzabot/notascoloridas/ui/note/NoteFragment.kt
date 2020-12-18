@@ -8,6 +8,7 @@ import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
+import androidx.work.Data
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.Fragment
@@ -18,6 +19,8 @@ import androidx.lifecycle.observe
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.RecyclerView
+import androidx.work.ExistingWorkPolicy.REPLACE
+import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkManager
 import com.williamzabot.notascoloridas.R
 import com.williamzabot.notascoloridas.data.AppDatabase
@@ -27,11 +30,13 @@ import com.williamzabot.notascoloridas.repository.NoteRepository
 import com.williamzabot.notascoloridas.repository.NoteRepositoryImpl
 import com.williamzabot.notascoloridas.ui.colors.*
 import com.williamzabot.notascoloridas.ui.colors.model.Color
+import com.williamzabot.notascoloridas.ui.notify.work.NotifyWork
+import java.lang.System.currentTimeMillis
+import java.util.concurrent.TimeUnit.MILLISECONDS
 import java.util.*
 
-const val NOTIFICATION_ID = "appName_notification_id"
-const val NOTIFICATION_NAME = "appName"
-const val NOTIFICATION_CHANNEL = "appName_channel_01"
+const val TITLE = "title"
+const val DESCRIPTION = "description"
 
 class NoteFragment : Fragment(R.layout.fragment_note) {
 
@@ -89,7 +94,7 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
         }
 
         args.note?.let { note ->
-            (activity as AppCompatActivity).supportActionBar?.title = "Editar nota"
+            (activity as AppCompatActivity).supportActionBar?.title = getString(R.string.edit_note)
             edtNoteTitle.setText(note.title)
             edtNoteDescription.setText(note.description)
             constraintNotes.background = transformDrawable(requireContext(), note.color)
@@ -98,32 +103,8 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
         }
         observeEvents()
         configureColorAdapter()
+        clickButtonNotify()
 
-        buttonNotify.setOnClickListener {
-            if (notifyActivated) {
-                //cancel notification
-            } else {
-                val direction = NoteFragmentDirections.actionShowDialogDate(
-                    args.note,
-                    edtNoteTitle.text.toString(),
-                    edtNoteDescription.text.toString(),
-                    currentColor
-                )
-                findNavController().navigate(direction)
-            }
-        }
-
-    }
-
-    private fun configureButtonNotify(note: Note?) {
-        if (dateIsValid(note?.date)) {
-            notifyActivated = true
-            buttonNotify.text = "Cancelar"
-        } else {
-            note?.date = null
-            notifyActivated = false
-            buttonNotify.text = "Avise-me"
-        }
     }
 
     private fun initView(view: View) {
@@ -132,6 +113,45 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
         constraintNotes = view.findViewById(R.id.constraint_notes_formulary)
         recyclerColors = view.findViewById(R.id.recyclerview_colors)
         buttonNotify = view.findViewById(R.id.button_notifications)
+    }
+
+    private fun clickButtonNotify() {
+        buttonNotify.setOnClickListener {
+            if (notifyActivated) {
+                cancelNotification()
+            } else {
+                goToDialogFragment()
+            }
+        }
+    }
+
+    private fun goToDialogFragment() {
+        val direction = NoteFragmentDirections.actionShowDialogDate(
+            args.note,
+            edtNoteTitle.text.toString(),
+            edtNoteDescription.text.toString(),
+            currentColor
+        )
+        findNavController().navigate(direction)
+    }
+
+    private fun cancelNotification() {
+        if (args.note?.date != null) {
+            instanceWorkManager.cancelUniqueWork(args.note!!.date!!)
+            args.note?.date = null
+            configureButtonNotify(args.note)
+        }
+    }
+
+    private fun configureButtonNotify(note: Note?) {
+        if (dateIsValid(note?.date)) {
+            notifyActivated = true
+            buttonNotify.text = getString(R.string.cancel)
+        } else {
+            note?.date = null
+            notifyActivated = false
+            buttonNotify.text = getString(R.string.avise_me)
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) =
@@ -151,13 +171,17 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
         if (title.isNotEmpty() && description.isNotEmpty()) {
             if (!dateIsValid(receivedDate)) {
                 receivedDate = null
+            } else {
+                val titleData = Data.Builder().putString(TITLE, title).build()
+                val descriptionData = Data.Builder().putString(DESCRIPTION, description).build()
+                scheduleNotification(receivedDate!!, titleData, descriptionData)
             }
             viewModel.addOrUpdateNote(
                 title,
                 description,
                 currentColor,
                 args.note?.id ?: 0,
-                receivedDate
+                receivedDate ?: args.note?.date
             )
         } else {
             Toast.makeText(
@@ -171,29 +195,37 @@ class NoteFragment : Fragment(R.layout.fragment_note) {
     private fun dateIsValid(time: String?): Boolean {
         return when (time) {
             null -> false
-            else -> {
-                val calendar = Calendar.getInstance()
-                calendar.set(
-                    time.toYear(),
-                    time.toMonth(),
-                    time.toDay(),
-                    time.toHour(),
-                    time.toMinute(),
-                    0
-                )
-                System.currentTimeMillis() < calendar.timeInMillis
-            }
+            else -> currentTimeMillis() < getCalendar(time).timeInMillis
         }
     }
 
+    private fun getCalendar(time: String): Calendar {
+        val calendar = Calendar.getInstance()
+        calendar.set(
+            time.toYear(),
+            time.toMonth(),
+            time.toDay(),
+            time.toHour(),
+            time.toMinute(),
+            0
+        )
+        return calendar
+    }
 
-    /*private fun scheduleNotification(delay: Long, data: Data) {
+    private fun scheduleNotification(
+        receivedDate: String,
+        title: Data,
+        description: Data
+    ) {
+        val time = getCalendar(receivedDate)
+        val delay = time.timeInMillis - currentTimeMillis()
         val notificationWork = OneTimeWorkRequest.Builder(NotifyWork::class.java)
-            .setInitialDelay(delay, TimeUnit.MILLISECONDS).setInputData(data).build()
-        instanceWorkManager.beginUniqueWork(NOTIFICATION_WORK,
-            ExistingWorkPolicy.REPLACE, notificationWork).enqueue()
-
-    }*/
+            .setInitialDelay(delay, MILLISECONDS)
+            .setInputData(title)
+            .setInputData(description)
+            .build()
+        instanceWorkManager.beginUniqueWork(receivedDate, REPLACE, notificationWork).enqueue()
+    }
 
     private fun observeEvents() {
         viewModel.noteEvent.observe(viewLifecycleOwner) { event ->
