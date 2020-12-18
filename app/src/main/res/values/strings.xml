@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Notas Coloridas</string>
+    <string name="app_name">Avise-me</string>
     <string name="description">Descrição</string>
     <string name="title">Título</string>
     <string name="add_note">Insere nota</string>

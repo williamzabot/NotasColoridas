@@ -8,6 +8,7 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModel
@@ -63,6 +64,7 @@ class NotesListFragment : Fragment(R.layout.fragment_notes_list) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        (activity as AppCompatActivity).supportActionBar?.title = getString(R.string.app_name)
         recyclerNotes = view.findViewById(R.id.recyclerview_noteslist)
         txtAddNote = view.findViewById(R.id.txt_add_note)
         observeEvents()
